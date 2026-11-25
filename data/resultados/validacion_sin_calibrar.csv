@@ -1,0 +1,6 @@
+variable,altura_desde_fondo_m,planta_C,torkashvand_C,modelo_C,error_modelo_C,error_torkashvand_C,caso
+Temperatura del producto (urea),,60.0,64.5,41.7629271404021,-18.2370728595979,4.5,sin calibrar
+Aire de salida (cabeza),79.9,65.0,69.4,70.8987075144243,5.898707514424302,4.400000000000006,sin calibrar
+Aire a 60 m del fondo (C),60.0,61.0,63.2,52.66193070153895,-8.33806929846105,2.200000000000003,sin calibrar
+Aire a 40 m del fondo (B),40.0,55.0,58.3,41.74809938650793,-13.251900613492069,3.299999999999997,sin calibrar
+Aire a 20 m del fondo (A),20.0,42.0,46.1,36.876233510425266,-5.123766489574734,4.100000000000001,sin calibrar

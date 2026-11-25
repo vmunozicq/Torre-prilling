@@ -1,0 +1,28 @@
+{
+  "balance_datos_planta": {
+    "Q_cedido_urea_kW": 7412.291666666666,
+    "Q_ganado_aire_kW": 6707.585922330575,
+    "descuadre_%": 9.507258699832027
+  },
+  "rmse_sin_calibrar_C": 11.302874230588495,
+  "rmse_calibrado_C": 5.181808688804866,
+  "rmse_torkashvand_C": 3.7986839826445173,
+  "h_factor_calibrado": 0.6135914690480785,
+  "sin_calibrar": {
+    "T_producto_C": 41.7629271404021,
+    "T_aire_salida_C": 70.8987075144243,
+    "masa_con_liquido_residual_%": 0.0,
+    "iteraciones": 6,
+    "convergio": true,
+    "error_balance_energia_%": 9.280982596719635e-14
+  },
+  "calibrado": {
+    "T_producto_C": 61.47001860437376,
+    "T_aire_salida_C": 67.92722152144421,
+    "masa_con_liquido_residual_%": 10.87143567763501,
+    "iteraciones": 6,
+    "convergio": true,
+    "error_balance_energia_%": 5.0596943474388556e-14
+  },
+  "d_max_solidifica_79.9m_35C_mm": 2.2672679901123045
+}

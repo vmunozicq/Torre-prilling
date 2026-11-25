@@ -1,0 +1,6 @@
+source_id,variable,altura_desde_fondo_m,planta_C,torkashvand_modelo_C
+S01,Temperatura del producto (urea),,60.0,64.5
+S01,Aire de salida (cabeza),79.9,65.0,69.4
+S01,Aire a 60 m del fondo (C),60.0,61.0,63.2
+S01,Aire a 40 m del fondo (B),40.0,55.0,58.3
+S01,Aire a 20 m del fondo (A),20.0,42.0,46.1

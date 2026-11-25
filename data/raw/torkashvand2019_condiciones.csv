@@ -1,0 +1,13 @@
+source_id,parametro,valor,unidad
+S01,Altura de la torre,79.9,m
+S01,Diámetro de la torre,17,m
+S01,Flujo de urea fundida,75,t/h
+S01,Temperatura de la urea alimentada,140,°C
+S01,Flujo de aire de enfriamiento,775,t/h
+S01,Temperatura del aire de entrada,35,°C
+S01,Humedad del aire,3.7,% en peso
+S01,Tamaño medio de partícula (ambiguo: radio o diámetro),0.85,mm
+S01,Velocidad del balde rotatorio,219,rpm
+S01,Densidad de la urea,1220,kg/m3
+S01,Punto de fusión,132.7,°C
+S01,Calor latente de fusión,224,kJ/kg

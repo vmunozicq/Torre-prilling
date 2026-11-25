@@ -1,0 +1,8 @@
+propiedad,modelo,thermo,dif_%
+Punto de fusión [°C],132.7,133.35,0.5
+Calor latente [kJ/kg],224.0,231.4535,3.3
+cp sólido cerca de Tm [kJ/kg K],1.62,1.5784,-2.6
+cp líquido cerca de Tm [kJ/kg K],1.92,1.9152,-0.2
+Densidad fundido [kg/m3],1220.0,798.6406,-34.5
+Densidad sólido [kg/m3],1335.0,900.2532,-32.6
+k fundido [W/m K],0.31,0.3056,-1.4
