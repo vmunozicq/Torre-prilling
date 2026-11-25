@@ -162,7 +162,7 @@ UREA = Material(
     cp_l=1920.0,            # thermo/chemicals a Tm+5 K (estimación) [VERIFICAR]
     cp_s=1620.0,            # thermo/chemicals a Tm-5 K [VERIFICAR]
     k_l=0.31,               # thermo/chemicals a Tm+5 K (estimación) [VERIFICAR]
-    k_s=0.60,               # [VERIFICAR] supuesto; variable clave del análisis de sensibilidad
+    k_s=0.60,               # [VERIFICAR] supuesto; en el tornado pesa poco (1,6 °C en T del producto)
     emissivity=0.9,         # [VERIFICAR] supuesto
     sources={
         "T_melt": "Torkashvand et al. (2019) Tabla 2",
