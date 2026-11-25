@@ -55,7 +55,7 @@ Los datos de planta descuadran el balance de energía en 9,5 %, así que ningún
 
 ## 5. Demo
 
-- App en línea: https://torre-prilling.streamlit.app *(pendiente de publicar)*
+- App en línea: **https://torre-prilling.streamlit.app** (si está dormida, pulsa el botón para despertarla; tarda unos 30 s).
 - Mueve el diámetro de gota y la altura en **Gota individual** para ver dónde solidifica; en **Torre completa + PSD** pulsa *Simular torre* y mira qué fracción de la PSD queda en rojo (no solidifica) o naranja (fuera de rango).
 
 ### Ejecutar en local
