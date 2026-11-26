@@ -19,6 +19,7 @@ ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "src"))
 
 from prilling.droplet import biot_number, simulate_droplet  # noqa: E402
+from prilling.process import cooler_air_required, fluid_bed_cooler, process_table, solve_recycle  # noqa: E402
 from prilling.properties import MATERIALS, air_table, thermo_comparison  # noqa: E402
 from prilling.psd import RosinRammler, rayleigh_drop_diameter  # noqa: E402
 from prilling.sensitivity import min_height_map  # noqa: E402
@@ -94,8 +95,9 @@ st.title("Torre de prilling: enfriamiento, solidificación y PSD del producto")
 st.caption("Proyecto personal de portafolio · datos públicos (bibliografía) · desarrollado con Claude Code. "
            "Ecuaciones, supuestos y límites en docs/modelo.md.")
 
-tab_drop, tab_tower, tab_val, tab_sens, tab_props = st.tabs(
-    ["Gota individual", "Torre completa + PSD", "Validación", "Sensibilidad", "Propiedades"])
+tab_drop, tab_tower, tab_plant, tab_val, tab_sens, tab_props = st.tabs(
+    ["Gota individual", "Torre completa + PSD", "Planta: tamiz, reciclo y enfriador", "Validación", "Sensibilidad",
+     "Propiedades"])
 
 # ---------------------------------------------------------------- gota
 with tab_drop:
@@ -144,7 +146,8 @@ with tab_tower:
         m1, m2, m3, m4 = st.columns(4)
         m1.metric("T producto (mezcla)", f"{s['T_producto_C']:.1f} °C")
         m2.metric("T aire de salida", f"{s['T_aire_salida_C']:.1f} °C")
-        m3.metric("Masa con líquido residual", f"{s['masa_con_liquido_residual_%']:.1f} %")
+        m3.metric("Masa con líquido residual", f"{s['masa_con_liquido_residual_%']:.1f} %",
+                  help=f"Gotas sobre {s['d_critico_gota_mm']:.2f} mm llegan al fondo con el núcleo líquido.")
         m4.metric("Producto en especificación", f"{100 * df.loc[ok, 'fraccion_masica'].sum():.1f} %")
         if not s["convergio"]:
             st.warning("La iteración no convergió: revisa los parámetros.")
@@ -173,6 +176,33 @@ with tab_tower:
             df.to_excel(xw, sheet_name="clases", index=False)
             pd.DataFrame({"z_desde_cabeza_m": res.z, "T_aire_C": res.T_air - 273.15, "u_aire_m_s": res.u_air}).to_excel(xw, sheet_name="perfil_aire", index=False)
         st.download_button("Descargar Excel", buf.getvalue(), "torre_prilling.xlsx")
+
+# ---------------------------------------------------------------- planta
+with tab_plant:
+    st.write("Torre → tamiz → enfriador de lecho fluidizado. Lo fuera de especificación (finos, gruesos y prills "
+             "blandos) se redisuelve y vuelve con el fundido, así que la torre procesa más que el fundido fresco.")
+    c1, c2 = st.columns(2)
+    T_target = c1.slider("T objetivo del producto [°C]", 30.0, 70.0, 50.0, 1.0)
+    T_air_cool = c2.slider("T aire del enfriador [°C]", 0.0, 45.0, float(T_air_in), 0.5)
+    if st.button("Resolver planta con reciclo", type="primary"):
+        with st.spinner("Iterando el reciclo (cada iteración simula la torre completa)…"):
+            rec = solve_recycle(cfg, *spec)
+            m_air_c = cooler_air_required(rec.m_fresh, material.cp_s, rec.screen.T_on_spec, T_target + 273.15,
+                                          T_air_cool + 273.15)
+            cool = fluid_bed_cooler(rec.m_fresh, material.cp_s, rec.screen.T_on_spec, max(m_air_c, 1e-6),
+                                    T_air_cool + 273.15)
+        rs = rec.summary()
+        a, b, c, d = st.columns(4)
+        a.metric("Carga de la torre", f"{rs['carga_torre_t_h']:.1f} t/h", f"+{rs['razon_reciclo_%']:.1f} % reciclo",
+                 delta_color="inverse")
+        b.metric("Prills blandos", f"{rs['blandos_%']:.1f} %")
+        c.metric("Aire del enfriador", f"{m_air_c * 3.6:.0f} t/h")
+        d.metric("T producto final", f"{cool.T_out - 273.15:.1f} °C")
+        if not rec.converged:
+            st.warning("El reciclo no convergió.")
+        st.dataframe(process_table(rec, cool).round(1), width="stretch", hide_index=True)
+        st.caption("El reciclo empeora la torre: más carga con el mismo aire calienta el aire y deja más prills "
+                   "blandos. La palanca de fondo es achicar la gota (orificios del balde) o subir el aire de la torre.")
 
 # ---------------------------------------------------------------- validación
 with tab_val:

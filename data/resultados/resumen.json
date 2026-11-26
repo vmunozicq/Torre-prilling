@@ -1,28 +1,57 @@
 {
   "balance_datos_planta": {
-    "Q_cedido_urea_kW": 7412.291666666666,
+    "Q_cedido_urea_kW": 7700.26875,
     "Q_ganado_aire_kW": 6707.585922330575,
-    "descuadre_%": 9.507258699832027
+    "descuadre_%": 12.891534826877633
   },
-  "rmse_sin_calibrar_C": 11.302874230588495,
-  "rmse_calibrado_C": 5.181808688804866,
+  "rmse_sin_calibrar_C": 10.014685390068944,
+  "rmse_calibrado_C": 5.016316880772266,
   "rmse_torkashvand_C": 3.7986839826445173,
-  "h_factor_calibrado": 0.6135914690480785,
+  "h_factor_calibrado": 0.6656117452338015,
   "sin_calibrar": {
-    "T_producto_C": 41.7629271404021,
-    "T_aire_salida_C": 70.8987075144243,
-    "masa_con_liquido_residual_%": 0.0,
+    "T_producto_C": 44.3694631324575,
+    "T_aire_salida_C": 72.02047586694647,
+    "masa_con_liquido_residual_%": 0.117877538672162,
+    "d_critico_gota_mm": 2.483837624337922,
     "iteraciones": 6,
     "convergio": true,
-    "error_balance_energia_%": 9.280982596719635e-14
+    "error_balance_energia_%": 4.499727483717715e-14
   },
   "calibrado": {
-    "T_producto_C": 61.47001860437376,
-    "T_aire_salida_C": 67.92722152144421,
-    "masa_con_liquido_residual_%": 10.87143567763501,
+    "T_producto_C": 61.548693442509375,
+    "T_aire_salida_C": 69.17937635309534,
+    "masa_con_liquido_residual_%": 6.254905693871082,
+    "d_critico_gota_mm": 2.141764753320347,
     "iteraciones": 6,
     "convergio": true,
-    "error_balance_energia_%": 5.0596943474388556e-14
+    "error_balance_energia_%": 6.092702577951983e-14
   },
-  "d_max_solidifica_79.9m_35C_mm": 2.2672679901123045
+  "d_max_solidifica_79.9m_35C_mm": 2.281705856323242,
+  "planta_con_reciclo": {
+    "fundido_fresco_t_h": 75.0,
+    "carga_torre_t_h": 83.95951402002663,
+    "reciclo_t_h": 8.959514020026637,
+    "razon_reciclo_%": 11.946018693368849,
+    "en_especificacion_%": 89.3287686040089,
+    "finos_%": 3.247922359940114,
+    "gruesos_%": 0.0,
+    "blandos_%": 7.423309036050984,
+    "T_producto_tamizado_C": 58.446214116658666,
+    "T_aire_salida_C": 72.94358658802821,
+    "iteraciones": 3,
+    "convergio": true,
+    "aire_enfriador_t_h": 73.885798943407,
+    "T_producto_final_C": 49.99887363859193,
+    "Q_enfriador_kW": 312.72758394842884,
+    "blandos_sin_reciclo_%": 6.254905693871082
+  },
+  "alternativa_gota_menor": {
+    "d50_gota_mm": 1.5671875,
+    "orificio_rayleigh_mm": 0.8291997354497355,
+    "blandos_%": 0.9926205154599632,
+    "finos_%": 5.237149301520116,
+    "en_especificacion_%": 93.77023018301992,
+    "T_producto_C": 52.138303836345415,
+    "aire_enfriador_t_h": 22.967012838198144
+  }
 }

@@ -8,7 +8,7 @@
 
 ![Demo](docs/demo.gif)
 
-**English summary.** A Python model of a urea prilling tower: each droplet size class is tracked as it falls (Clift-Gauvin drag, Ranz-Marshall heat transfer) while an enthalpy-method finite-volume scheme resolves radial conduction and solidification inside the droplet; the classes are coupled to the counter-current cooling air through an iterative energy balance. Verified against exact solutions (sphere conduction series, quasi-steady sphere solidification) and validated against published data from an 80 m industrial tower (Torkashvand et al., 2019): RMSE 5.2 °C with a single calibrated heat-transfer factor, versus 3.8 °C for the authors' own model. The calibrated case also exposes a structural limitation (about 11 % of the mass would still hold liquid at the bottom), which is documented rather than tuned away. A Streamlit app explores droplet size, tower height and air conditions, and reports the product size distribution.
+**English summary.** A Python model of a urea prilling tower: each droplet size class is tracked as it falls (Clift-Gauvin drag, Ranz-Marshall heat transfer) while an enthalpy-method finite-volume scheme resolves radial conduction and solidification inside the droplet; the classes are coupled to the counter-current cooling air through an iterative energy balance. Verified against exact solutions (sphere conduction series, quasi-steady sphere solidification) and validated against published data from an 80 m industrial tower (Torkashvand et al., 2019): RMSE 5.0 °C with a single calibrated heat-transfer factor, versus 3.8 °C for the authors' own model. The calibrated case also exposes a structural limitation (about 6 % of the mass would still hold liquid at the bottom), which is documented rather than tuned away. A plant module adds screening, recycle and a fluid-bed cooler, and shows that a smaller droplet beats recycling. A Streamlit app explores droplet size, tower height and air conditions, and reports the product size distribution.
 
 ---
 
@@ -27,6 +27,7 @@ Tres piezas, cada una con su fuente (detalle completo en [`docs/modelo.md`](docs
 | Solidificación | conducción radial con método de entalpía en N capas esféricas | formulación estándar; verificada contra London y Seban (1943) |
 | Aire en contracorriente | ṁa [ha(Ta(z)) − ha(Ta,in)] = ṁf Σ wj [H̄j(z) − H̄j(H)] | balance de energía, pared adiabática |
 | PSD | Rosin-Rammler; d_gota = 1,89 d_orificio | Rosin y Rammler (1933); Rayleigh (1878) |
+| Tamiz, reciclo y enfriador | reciclo redisuelto a la alimentación; lecho fluidizado con el aire a la T del lecho | Kunii y Levenspiel (1991) |
 
 Propiedades del aire con CoolProp; de la urea, desde literatura y contrastadas con `thermo`.
 
@@ -35,6 +36,7 @@ Propiedades del aire con CoolProp; de la urea, desde literatura y contrastadas c
 - Flujo de aire uniforme (1D), gotas esféricas sin interacción, movimiento solo vertical.
 - Propiedades constantes por fase y solidificación a T_m sin subenfriamiento.
 - No modela secado, biuret, aglomeración ni polvo. El nitrato de amonio está disponible como **no validado** (no incluye sus transiciones sólido-sólido).
+- La conductividad del sólido es un supuesto (0,6 W/m K): el valor que repite la literatura de prilling, 0,0265 W/m K, es el del aire y el modelo muestra que es imposible ([`docs/modelo.md`](docs/modelo.md) §4).
 - Un único parámetro de calibración (`h_factor`), ajustado a la planta de referencia.
 - **Datos: solo bibliografía pública.** Ningún dato proviene de empresas donde he trabajado. Fuentes en [`SOURCES.md`](SOURCES.md).
 
@@ -44,19 +46,21 @@ Propiedades del aire con CoolProp; de la urea, desde literatura y contrastadas c
 
 **Validación contra planta:** torre de urea de 79,9 m, 75 t/h (Torkashvand et al., 2019, Tabla 1, [doi:10.2298/CICEQ180827030T](https://doi.org/10.2298/CICEQ180827030T)).
 
-| Variable | Planta | Modelo de los autores | Este modelo, h_factor = 1 | Este modelo, h_factor = 0,61 |
+| Variable | Planta | Modelo de los autores | Este modelo, h_factor = 1 | Este modelo, h_factor = 0,67 |
 | --- | --- | --- | --- | --- |
-| Temperatura del producto (urea) [°C] | 60,0 | 64,5 | 41,8 | 61,5 |
-| **RMSE [°C]** | | **3,8** | **11,3** | **5,2** |
+| Temperatura del producto (urea) [°C] | 60,0 | 64,5 | 44,4 | 61,5 |
+| **RMSE [°C]** | | **3,8** | **10,0** | **5,0** |
 
-Los datos de planta descuadran el balance de energía en 9,5 %, así que ningún modelo adiabático puede ajustar los cinco puntos a la vez. Además, el caso calibrado deja cerca de 11 % de la masa (las gotas más grandes) con líquido residual en el fondo, algo poco creíble en una planta que produce prills sanos. La principal limitación es la forma del perfil de aire (la planta libera más calor en la parte baja); está discutida en [`docs/modelo.md`](docs/modelo.md) §6. El test que fija estos resultados está en [`tests/test_validacion.py`](tests/test_validacion.py).
+Los datos de planta descuadran el balance de energía en 12,9 %, así que ningún modelo adiabático puede ajustar los cinco puntos a la vez. Además, el caso calibrado deja 6 % de la masa (gotas sobre 2,14 mm) con líquido residual en el fondo, lo que sugiere que el factor ajusta la temperatura por una razón que no es la única. La principal limitación es la forma del perfil de aire (la planta libera más calor en la parte baja); está discutida en [`docs/modelo.md`](docs/modelo.md) §6. El test que fija estos resultados está en [`tests/test_validacion.py`](tests/test_validacion.py).
 
 ![Perfil de aire](docs/img/validacion_perfil_aire.png)
+
+**Planta completa** ([`docs/modelo.md`](docs/modelo.md) §7): reciclar lo fuera de especificación sube la carga de la torre 12 % y empeora la fracción blanda (6,3 → 7,4 %); achicar la gota de 1,70 a 1,57 mm la deja bajo 1 % y reduce a un tercio el aire del enfriador.
 
 ## 5. Demo
 
 - App en línea: **https://torre-prilling.streamlit.app** (si está dormida, pulsa el botón para despertarla; tarda unos 30 s).
-- Mueve el diámetro de gota y la altura en **Gota individual** para ver dónde solidifica; en **Torre completa + PSD** pulsa *Simular torre* y mira qué fracción de la PSD queda en rojo (no solidifica) o naranja (fuera de rango).
+- Mueve el diámetro de gota y la altura en **Gota individual** para ver dónde solidifica; en **Torre completa + PSD** pulsa *Simular torre* y mira qué fracción de la PSD queda en rojo (no solidifica) o naranja (fuera de rango). En **Planta** resuelve el reciclo y el aire del enfriador.
 
 ### Ejecutar en local
 

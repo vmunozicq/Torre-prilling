@@ -39,8 +39,8 @@ def test_validation_regression(plant):
     """Regresión: el modelo SIN calibrar sobre la torre de Torkashvand et al.
     Si cambias el modelo y esto falla, actualiza docs/modelo.md §6 a sabiendas."""
     df = compare(plant)
-    assert rmse(df) == pytest.approx(11.3, abs=1.5)
-    assert df.loc[0, "modelo_C"] == pytest.approx(41.8, abs=2.0)
+    assert rmse(df) == pytest.approx(10.0, abs=1.5)
+    assert df.loc[0, "modelo_C"] == pytest.approx(44.4, abs=2.0)
 
 
 def test_rejects_unphysical_inputs():

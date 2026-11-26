@@ -106,7 +106,49 @@ ax.set_yticks(y, tor["parametro"]); ax.axvline(0, color="k", lw=0.8)
 ax.set_xlabel(f"Cambio en T del producto [°C] (base {base_T:.1f} °C)")
 ax.set_title("Sensibilidad de la temperatura del producto"); ax.legend(fontsize=8)
 fig.tight_layout(); fig.savefig(IMG / "tornado.png"); plt.close(fig)
-print("5/5 tornado")
+print("5/7 tornado")
+
+# 6. Planta completa: tamiz + reciclo + enfriador (caso calibrado)
+from prilling.process import cooler_air_required, fluid_bed_cooler, process_table, solve_recycle  # noqa: E402
+from prilling.psd import RosinRammler  # noqa: E402
+
+SPEC = (1.0, 2.4)  # mm [DECIDIR] rango de especificación del prill
+T_TARGET = 50.0    # °C [DECIDIR] temperatura objetivo del producto a ensacado/acopio
+cfg_cal = plant_config(h_factor=f_cal)
+rec = solve_recycle(cfg_cal, *SPEC, progress=lambda i, m: print(f"   reciclo it {i}: torre {m:.1f} t/h"))
+m_air_cool = cooler_air_required(rec.m_fresh, UREA.cp_s, rec.screen.T_on_spec, T_TARGET + 273.15, cfg_cal.T_air_in)
+cool = fluid_bed_cooler(rec.m_fresh, UREA.cp_s, rec.screen.T_on_spec, m_air_cool, cfg_cal.T_air_in)
+process_table(rec, cool).to_csv(OUT / "planta_corrientes.csv", index=False)
+summary["planta_con_reciclo"] = rec.summary() | {
+    "aire_enfriador_t_h": m_air_cool * 3.6, "T_producto_final_C": cool.T_out - 273.15, "Q_enfriador_kW": cool.Q_kW,
+    "blandos_sin_reciclo_%": 100 * cal.offspec_liquid_fraction,
+}
+print("6/7 planta con reciclo")
+
+# 7. Alternativa: achicar la gota (orificios del balde) hasta que no queden blandos
+def soft_at(d50_mm):
+    n = cfg_cal.psd.n
+    r = simulate_tower(replace(cfg_cal, psd=RosinRammler(d50_mm * 1e-3 / np.log(2.0) ** (1 / n), n)))
+    return r
+
+lo, hi = 1.2, 1.70
+for _ in range(6):
+    mid = 0.5 * (lo + hi)
+    if soft_at(mid).offspec_liquid_fraction <= 0.01:
+        lo = mid
+    else:
+        hi = mid
+alt = soft_at(lo)
+from prilling.process import screen  # noqa: E402
+
+s_alt = screen(alt, *SPEC)
+summary["alternativa_gota_menor"] = {
+    "d50_gota_mm": lo, "orificio_rayleigh_mm": lo / 1.89, "blandos_%": 100 * alt.offspec_liquid_fraction,
+    "finos_%": 100 * s_alt.fines, "en_especificacion_%": 100 * s_alt.on_spec, "T_producto_C": alt.T_product - 273.15,
+    "aire_enfriador_t_h": 3.6 * cooler_air_required(cfg_cal.m_melt * s_alt.on_spec, UREA.cp_s, s_alt.T_on_spec,
+                                                     T_TARGET + 273.15, cfg_cal.T_air_in),
+}
+print("7/7 alternativa")
 
 (OUT / "resumen.json").write_text(json.dumps(summary, indent=2, ensure_ascii=False, default=float))
 print(json.dumps(summary, indent=2, ensure_ascii=False, default=float))

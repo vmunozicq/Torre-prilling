@@ -72,7 +72,8 @@ class TowerResult:
     energy_balance_error: float   # relativo
     T_product: float              # K, temperatura de mezcla del producto
     T_air_out: float              # K
-    offspec_liquid_fraction: float  # fracción másica con líquido residual al fondo
+    offspec_liquid_fraction: float  # fracción másica con líquido residual al fondo (desde d_crit)
+    d_crit: float = float("nan")    # m, gota más grande que solidifica en H
 
     def T_air_at_height_from_bottom(self, h_from_bottom: float) -> float:
         return float(np.interp(self.config.H - h_from_bottom, self.z, self.T_air))
@@ -82,6 +83,7 @@ class TowerResult:
             "T_producto_C": self.T_product - 273.15,
             "T_aire_salida_C": self.T_air_out - 273.15,
             "masa_con_liquido_residual_%": 100 * self.offspec_liquid_fraction,
+            "d_critico_gota_mm": self.d_crit * 1e3,
             "iteraciones": self.iterations,
             "convergio": self.converged,
             "error_balance_energia_%": 100 * self.energy_balance_error,
@@ -162,7 +164,24 @@ def simulate_tower(cfg: TowerConfig, progress=None) -> TowerResult:
     Q_melt = cfg.m_melt * (float(mat.enthalpy(cfg.T_melt_in)) - h_prod)
     Q_air = cfg.m_air * (h_air(T_air_out) - h_air(cfg.T_air_in))
     err = abs(Q_air - Q_melt) / Q_melt
-    offspec = float(df.loc[~df["solidifica"], "fraccion_masica"].sum())
+    d_crit = critical_diameter(df, cfg.H)
+    offspec = float(1.0 - cfg.psd.cdf(d_crit)) if np.isfinite(d_crit) else 0.0
     u_air = G_air / np.array([air.at(T)[0] for T in T_air])
     return TowerResult(cfg, z, T_air, u_air, df, drops, it, converged, err,
-                       T_product, T_air_out, offspec)
+                       T_product, T_air_out, offspec, d_crit)
+
+
+def critical_diameter(df: pd.DataFrame, H: float) -> float:
+    """Diámetro de gota [m] que solidifica justo al llegar al fondo.
+
+    Ajuste potencial z_solid = a d^b sobre las (hasta) 3 clases sólidas más
+    grandes, evaluado en z_solid = H. Evita que la fracción blanda salte de
+    clase en clase con una PSD discretizada en pocas clases. Devuelve inf si no
+    hay clases suficientes para extrapolar y todas solidifican.
+    """
+    ok = df[df["solidifica"] & np.isfinite(df["z_solidificacion_m"])]
+    if len(ok) < 2:
+        return 0.0 if len(ok) == 0 else float("inf")
+    tail = ok.tail(3)
+    b, ln_a = np.polyfit(np.log(tail["d_gota_mm"] * 1e-3), np.log(tail["z_solidificacion_m"]), 1)
+    return float(np.exp((np.log(H) - ln_a) / b))

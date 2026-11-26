@@ -1,6 +1,6 @@
 # Dependencias de ejecución (las lee Streamlit Community Cloud). Versiones probadas.
 streamlit==1.67.0
-numpy>=1.26
+numpy>=2.0
 scipy>=1.11
 pandas>=2.2
 matplotlib>=3.8

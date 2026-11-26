@@ -152,25 +152,45 @@ def thermo_comparison(material: Material, cas: str) -> list[dict]:
     ]
 
 
-# Urea (CAS 57-13-6). Valores por defecto: ver SOURCES.md.
+# Urea (CAS 57-13-6). Valores por defecto: ver SOURCES.md y docs/modelo.md §4.
+MW_UREA = 60.056  # g/mol
+
+
+def cp_urea_solid_molar(T):
+    """cp de la urea sólida [J/(mol K)], 240-400 K (Chemcess, resumen de Ullmann/Kirk-Othmer).
+
+    Contraste: a 298 K da 93,1 J/(mol K); NIST WebBook informa 92,8 J/(mol K).
+    """
+    T = np.asarray(T, dtype=float)
+    return 38.43 + 4.98e-2 * T + 7.05e-4 * T**2 - 8.61e-7 * T**3
+
+
+def cp_urea_solid_mean(T_lo: float = 308.15, T_hi: float = 405.85) -> float:
+    """cp medio del sólido [J/(kg K)] en el rango de enfriamiento del prill."""
+    T = np.linspace(T_lo, T_hi, 200)
+    return float(np.trapezoid(cp_urea_solid_molar(T), T) / (T_hi - T_lo) / MW_UREA * 1e3)
+
+
 UREA = Material(
     name="Urea",
-    T_melt=132.7 + 273.15,  # Torkashvand et al. 2019, Tabla 2 (thermo: 133.4 °C)
-    L_fus=224e3,            # Torkashvand et al. 2019, Tabla 2 (thermo: 231 kJ/kg)
-    rho_l=1220.0,           # Torkashvand et al. 2019, Tabla 2
-    rho_s=1335.0,           # densidad cristalina de la urea [VERIFICAR fuente]
-    cp_l=1920.0,            # thermo/chemicals a Tm+5 K (estimación) [VERIFICAR]
-    cp_s=1620.0,            # thermo/chemicals a Tm-5 K [VERIFICAR]
-    k_l=0.31,               # thermo/chemicals a Tm+5 K (estimación) [VERIFICAR]
-    k_s=0.60,               # [VERIFICAR] supuesto; en el tornado pesa poco (1,6 °C en T del producto)
+    T_melt=132.7 + 273.15,  # Torkashvand et al. 2019, Tabla 2 (thermo: 133.4 °C; Chemcess: 132.6 °C)
+    L_fus=224e3,            # Torkashvand 2019 y Mehrez 2012 (de Ullmann); Chemcess: 13,61 kJ/mol = 227 kJ/kg
+    rho_l=1245.0,           # Chemcess: rho = 1638.5 - 0.96 T [K] (133-150 °C) a 136-140 °C; 1247 a 135 °C
+    rho_s=1335.0,           # Chemcess: 1335 kg/m3 a 20 °C; Ha et al. 2023 usan el mismo valor
+    cp_l=2250.0,            # Chemcess (135 °C) y Ha et al. 2023: 2,25 kJ/(kg K)
+    cp_s=round(cp_urea_solid_mean(), 0),  # media de la correlación entre 35 y 132,7 °C = 1777 J/(kg K)
+    k_l=0.31,               # thermo/chemicals (estimación) [VERIFICAR: sin valor medido accesible]
+    k_s=0.60,               # [VERIFICAR] supuesto; el valor de la literatura de prilling (0,0265) es
+    #                         físicamente imposible (ver docs/modelo.md §4). Medido en Andersson & Ross (1994), de pago.
+    #                         En el tornado pesa poco (1,6 °C en T del producto).
     emissivity=0.9,         # [VERIFICAR] supuesto
     sources={
         "T_melt": "Torkashvand et al. (2019) Tabla 2",
-        "L_fus": "Torkashvand et al. (2019) Tabla 2",
-        "rho_l": "Torkashvand et al. (2019) Tabla 2",
-        "rho_s": "VERIFICAR",
-        "cp_l": "thermo 0.6 (estimación)",
-        "cp_s": "thermo 0.6",
+        "L_fus": "Torkashvand et al. (2019) Tabla 2; Mehrez et al. (2012) Tabla II",
+        "rho_l": "Chemcess (correlación 133-150 °C)",
+        "rho_s": "Chemcess; Ha et al. (2023)",
+        "cp_l": "Chemcess; Ha et al. (2023)",
+        "cp_s": "Chemcess (correlación 240-400 K), promedio 35-132,7 °C",
         "k_l": "thermo 0.6 (estimación)",
         "k_s": "VERIFICAR (supuesto)",
     },
